@@ -1,16 +1,19 @@
 # Agentic Skills
 
-A small collection of agent skills and one agent definition, written in the
+A collection of agent skills and one agent definition, written in the
 [Agent Skills](https://agentskills.io/specification) format (`SKILL.md` with
 YAML frontmatter) so any compatible agent runtime can load them.
+
+Written to an expert bar: dense, battle-tested rules, decision tables,
+red-flag tables, and worked examples — not generic advice.
 
 ## Contents
 
 | Path | Type | What it does |
 |------|------|--------------|
-| `skills/agentic/` | Skill | Operating principles for working agentically: orient first, act with the smallest change, verify with evidence, escalate on time. |
-| `skills/loop/` | Skill | An explicit DEFINE → ACT → VERIFY → REPEAT loop with exit criteria, for running any non-trivial task to verified completion. |
-| `agents/visioner.md` | Agent | A strategic "visioner" subagent that turns vague goals into a Vision Brief: problem, north star, non-goals, milestones with acceptance criteria, risks. |
+| `skills/agentic/` | Skill | Expert operating system for autonomous work: orient and trace before editing, risk-first planning, a ladder of evidence, and act-vs-ask calibration with a red-flag table. |
+| `skills/loop/` | Skill | Expert act-verify-repeat loop: a quality bar for exit criteria, two-strike and reopen rules, a stall alarm, and a full worked example. |
+| `agents/visioner.md` | Agent | Expert strategist agent producing a Vision Brief with kill criteria, assumption tests, and an M0 that attacks the riskiest assumption first. |
 | `scripts/validate.sh` | Check | Validates the frontmatter of all skills and the agent file. |
 
 ## Install (Claude Code)

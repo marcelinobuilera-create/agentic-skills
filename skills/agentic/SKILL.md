@@ -1,55 +1,91 @@
 ---
 name: agentic
-description: Use when executing any multi-step task autonomously — deciding what to do next, gathering context, making changes, and verifying results. Covers how to work agentically, how much to do per step, when to act without asking, and when to stop and ask the user.
+description: Use when executing any multi-step task autonomously — orienting on a new task, deciding what to do next, gathering context, making changes under uncertainty, verifying results with evidence, and calibrating when to act without asking versus when to stop and ask the user. Covers root-cause discipline, the reuse ladder, and the ladder of verification.
 ---
 
 # Agentic
 
 ## Overview
 
-Owning an outcome is different from executing instructions. This skill defines
-how to operate autonomously: understand before acting, make the smallest change
-that reaches the goal, verify everything you claim, and escalate at the right
-moment — not too early, not too late.
+Competent agents finish tasks. Expert agents finish the *right* task, with
+evidence, in few iterations, and leave no surprises behind.
 
-**Core principle: never claim done without evidence you produced yourself.**
+**Core principle: never claim done without evidence you produced yourself —
+and never change code you cannot trace.**
 
-## Operating loop
+## Phase 1 — Orient
 
-1. **Orient** — Read the task fully. List what you know and what you are
-   assuming. Assumptions become explicit statements, not silent guesses.
-2. **Gather context in parallel** — Batch every independent read, search, and
-   command into one round before acting. Do not serialize independent lookups.
-3. **Plan briefly** — Write the smallest sequence of steps that reaches "done".
-   If you cannot state what "done" means, resolving that is step one.
-4. **Act** — One coherent change per step. Re-read the code you are about to edit.
-5. **Verify** — Run the build, test, or command that proves the step worked.
-   Show or cite the actual output.
-6. **Report** — What changed, where, and how it was verified. Leftovers included.
+1. Read the task twice: once for the goal, once for constraints ("don't
+   touch", "must stay compatible", deadlines).
+2. Classify the work: new build / modify existing / debug / operate. Each has
+   a different risk profile and different verification needs.
+3. Write "done" in one sentence. If you can't, resolving that is step one.
+4. List explicit assumptions: statements that must be true for your plan to
+   work. Assumptions get stated, never smuggled.
 
-## Rules of thumb
+## Phase 2 — Gather context
 
-| Situation | Do this |
-|-----------|---------|
-| Need a utility | Reuse what exists first: project helper > standard library > installed dependency > new code |
-| Independent tool calls | Emit them together in one batch, never one per turn |
-| A bug report | Fix the root cause in the shared function, not the symptom in each caller |
-| Reversible action within scope | Just do it; do not ask permission |
-| Destructive or irreversible action | Stop and ask first |
-| Two failed attempts on the same blocker | Stop and change approach or escalate — never attempt #3 blindly |
-| About to claim "done" | Verify by running something first |
+- Batch every independent read, search, and command into one parallel round.
+  Serializing independent lookups is wasted turns.
+- Read in this order: the entry point for the task → its callers and callees →
+  conventions (README / AGENTS.md / existing tests) → tangents only if needed.
+- Trace the real flow end to end before editing anything. Reading a function
+  is not tracing it: know who calls it and what breaks when it changes.
+- Stop gathering when new reads stop changing the plan.
 
-## When to stop and ask
+## Phase 3 — Plan
 
-- The action is destructive, irreversible, or touches production or credentials.
-- The answer would change the deliverable itself, not just its implementation.
-- You are blocked twice on the same step.
-- Required input (credentials, decisions, access) does not exist in the environment.
+- Smallest sequence of verifiable steps; each step names the check that
+  proves it worked.
+- Order steps so the riskiest assumption dies first — a plan that fails fast
+  costs less than one that fails late.
+- Identify the trust boundary of the change (inputs you don't control) and
+  validate there, not everywhere.
 
-## Common mistakes
+## Phase 4 — Act
 
-- **Claiming done without running anything.** "Should work" is not verification.
-- **Editing blind.** Making changes without reading the surrounding code first.
-- **Asking permission for reversible work.** Wastes a round-trip on nothing.
-- **Over-building.** Layers, abstractions, and options nobody asked for.
-- **Silent scope creep.** Fixing unrelated things mid-task without flagging them.
+- One coherent change per step. Re-read the exact lines you are about to edit.
+- **Root-cause rule:** a bug report names a symptom, not the bug. Fix the
+  shared function once and grep every caller — one guard beats ten patches.
+- **Reuse ladder:** project helper > standard library > already-installed
+  dependency > new code. Deletion beats addition; boring beats clever.
+- Mark deliberate simplifications with a comment naming the ceiling and the
+  upgrade path, so corners cut on purpose stay visible.
+
+## Phase 5 — Verify (ladder of evidence)
+
+1. Parses / compiles.
+2. The changed path actually runs.
+3. Tests pass — including the ones you didn't touch.
+4. Behavior matches the stated "done".
+
+Below rung 4 you are not done; you are guessing with extra steps. Cite the
+actual command output, not a summary of your intentions.
+
+## Phase 6 — Report
+
+What changed and where · how it was verified (evidence) · leftovers and known
+limits · discoveries outside the original scope. No surprises: everything the
+next person would want to know is on the page.
+
+## Decide: act or ask
+
+| Situation | Action |
+|-----------|--------|
+| Reversible and in scope | Act now — don't spend a round-trip asking |
+| Destructive, irreversible, production, or credentials | Ask first, always |
+| Ambiguity that changes the deliverable | Ask, with a proposed default |
+| Ambiguity that only changes implementation | Decide, state the assumption, proceed |
+| Same blocker failed twice | Change approach; a third failure means ask |
+| Out-of-scope work discovered | Finish the scope; report the discovery — never silently absorb |
+
+## Red flags
+
+| Thought | Reality |
+|---------|---------|
+| "I've read enough" | Reading is not tracing; trace the flow first |
+| "It probably works" | "Probably" is not evidence; run it |
+| "The fix is obvious" | Obvious fixes in unfamiliar code are how second bugs are born |
+| "One more small feature won't hurt" | Scope creep is a sequence of small features |
+| "I'll verify at the end" | Verification deferred is verification skipped |
+| "Asking looks weak" | Escalating on time is the competence signal |
