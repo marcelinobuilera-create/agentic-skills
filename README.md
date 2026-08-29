@@ -1,6 +1,6 @@
 # Agentic Skills
 
-A collection of agent skills and one agent definition, written in the
+A collection of agent skills and agent definitions, written in the
 [Agent Skills](https://agentskills.io/specification) format (`SKILL.md` with
 YAML frontmatter) so any compatible agent runtime can load them.
 
@@ -14,7 +14,30 @@ red-flag tables, and worked examples — not generic advice.
 | `skills/agentic/` | Skill | Expert operating system for autonomous work: orient and trace before editing, risk-first planning, a ladder of evidence, and act-vs-ask calibration with a red-flag table. |
 | `skills/loop/` | Skill | Expert act-verify-repeat loop: a quality bar for exit criteria, two-strike and reopen rules, a stall alarm, and a full worked example. |
 | `agents/visioner.md` | Agent | Expert strategist agent producing a Vision Brief with kill criteria, assumption tests, and an M0 that attacks the riskiest assumption first. |
-| `scripts/validate.sh` | Check | Validates the frontmatter of all skills and the agent file. |
+| `agents/planner.md` | Agent | Turns a Vision Brief or goal into an Implementation Plan: ordered riskiest-first steps, each with files, a verification command, and a checkable done criterion. |
+| `agents/implementer.md` | Agent | Executes a plan one step per iteration under loop discipline: captured evidence, no silent redesign, deviations flagged back to the planner. |
+| `agents/reviewer.md` | Agent | Adversarial review against the plan's acceptance criteria: scope audit, re-runs verification itself, APPROVE / REQUEST_CHANGES with tagged findings. |
+| `skills/security/` | Skill | Hard gates for agents: secrets hygiene, trust boundaries (shell/SQL/path/prompt injection), destructive operations, supply chain, least privilege. |
+| `scripts/install.sh` | Tool | Idempotent installer into `~/.claude/skills` and `~/.claude/agents`. |
+| `scripts/eval.sh` | Tool | RED-vs-GREEN eval harness driven by `scenarios/*.md` rubrics. |
+| `scenarios/` | Rubrics | Three test scenarios: loop discipline, agentic efficiency, visioner format. |
+| `scripts/validate.sh` | Check | Validates the frontmatter of all skills and agent files. |
+
+## The pipeline
+
+The four agents form a chain — each output is the next agent's input:
+
+```
+visioner → planner → implementer → reviewer
+```
+
+- **visioner** turns a vague goal into a Vision Brief.
+- **planner** turns the brief into an ordered, verifiable Implementation Plan.
+- **implementer** executes the plan one step per iteration under the `loop` skill, with evidence.
+- **reviewer** audits the result against the plan's acceptance criteria before it counts as done.
+
+The discipline skills apply throughout: `agentic` (how to work), `loop` (how
+to finish), `security` (what must never break).
 
 ## Why these skills (tested, not vibes)
 
@@ -41,22 +64,25 @@ benchmark.*
 
 ```bash
 git clone https://github.com/marcelinobuilera-create/agentic-skills.git
-mkdir -p ~/.claude/skills ~/.claude/agents
-cp -r agentic-skills/skills/agentic agentic-skills/skills/loop ~/.claude/skills/
-cp agentic-skills/agents/visioner.md ~/.claude/agents/
+./agentic-skills/scripts/install.sh --dry-run   # preview
+./agentic-skills/scripts/install.sh             # skills → ~/.claude/skills, agents → ~/.claude/agents
 ```
 
-Other runtimes (Codex, Copilot CLI, Gemini CLI) also recognize `~/.agents/skills/`
-as a cross-runtime location — copy the skill folders there instead if you prefer.
+Other runtimes (Codex, Copilot CLI, Gemini CLI) recognize `~/.agents/skills/`
+as a cross-runtime location — point the installer there instead:
+`./scripts/install.sh --skills-dir ~/.agents/skills --agents-dir ~/.agents/agents`.
 
 ## Usage
 
-- **agentic** — loads when the agent is executing multi-step work autonomously.
-- **loop** — loads when a task needs an explicit act/verify cycle with exit criteria.
-- **visioner** — invoke as a subagent, e.g. *"Use the visioner agent on this idea: ..."*
+- Skills load automatically when the situation matches their description.
+- Agents are invoked as subagents, e.g. *"Use the visioner agent on this idea: ..."*
+  or *"Have the planner break this down, then the implementer execute it, then the
+  reviewer audit it against the plan."*
 
-## Validate
+## Validate & eval
 
 ```bash
-./scripts/validate.sh
+./scripts/validate.sh                    # frontmatter check for every skill and agent
+./scripts/eval.sh list                   # list test scenarios
+./scripts/eval.sh run visioner-format    # generate RED/GREEN prompts, grade outputs against the rubric
 ```

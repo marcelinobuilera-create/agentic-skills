@@ -23,6 +23,6 @@ check() {
 }
 
 for f in skills/*/SKILL.md; do check "$f" skill; done
-check "agents/visioner.md" agent
+for f in agents/*.md; do check "$f" agent; done
 
 exit $fail

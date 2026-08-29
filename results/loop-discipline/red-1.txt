@@ -1,0 +1,2 @@
+DONE checklist: exit criteria = suite green
+18 passed, exit code 0

@@ -1,0 +1,1 @@
+Product goal, verbatim from the founders: "We run a four-location independent coffee shop chain and want a loyalty program our customers will love." No metric, no deadline, a small budget, one developer, and a rival chain's app our regulars already ignore. Turn this vague goal into a Vision Brief precise enough that a planning agent can take the next step without guessing.
